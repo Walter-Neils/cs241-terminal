@@ -40,6 +40,7 @@ void* vector_get_element_at_index(vector* target, size_t index);
 void vector_clear(vector* target);
 void vector_destroy(vector* target);
 void vector_remove_at(vector* vector, size_t index);
+size_t vector_length(vector* vector);
 
 typedef struct vector_iterator {
   vector* target_vector;
