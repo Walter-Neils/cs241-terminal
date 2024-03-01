@@ -2,6 +2,8 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <termios.h>
 #include <time.h>
@@ -34,6 +36,7 @@ void input_state_allow_nonblocking_reads(input_state *state) {
 }
 
 INPUT_STATE_UPDATE_STATUS input_state_update(input_state *state) {
+#if USE_ASYNC_IO || true // WHY DOES THIS NEED TO BE TRUE???
   clock_t start = clock();
   do {
     size_t character_insertion_position = strlen(state->value_buffer);
@@ -64,8 +67,19 @@ INPUT_STATE_UPDATE_STATUS input_state_update(input_state *state) {
   } while (((double)(clock() - start) / CLOCKS_PER_SEC) * 1000 <
            MAX_INPUT_UPDATE_DURATION);
   return INPUT_STATE_UPDATE_STATUS_NONE;
+#else
+  memset(state->value_buffer, 0, state->value_buffer_size);
+  fgets(state->value_buffer, state->value_buffer_size - 1, stdin);
+  return INPUT_STATE_UPDATE_STATUS_RESULT_READY;
+#endif
 }
 
 void input_state_clear(input_state *state) {
   memset(state->value_buffer, 0, state->value_buffer_size);
+  for (size_t i = 0; i < state->value_buffer_size; i++) {
+    if (state->value_buffer[i] != 0) {
+      perror("INPUT BUFFER CONTAINS INCORRECT DATA AFTER CLEAR");
+      exit(EXIT_FAILURE);
+    }
+  }
 }
