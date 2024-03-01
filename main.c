@@ -63,6 +63,23 @@ CMD_LAYER_RESULT exit_handler(vector *parameters) {
   }
 }
 
+const size_t MAX_PATH = 256; // Pulled this default outta thin air, feel free to
+                             // change if it sucks or something
+
+CMD_LAYER_RESULT change_dir_handler(vector *parameters) {
+  string command = *(string *)vector_get_element_at_index(parameters, 0);
+  if (are_strings_identical(command, "cd")) {
+    string target_directory =
+        *(string *)vector_get_element_at_index(parameters, 1);
+    if (chdir(target_directory) != 0) {
+      printf("Cannot switch to directory %s\n", target_directory);
+      fflush(stdout);
+    }
+    return CMD_LAYER_RESULT_HANDLED;
+  }
+  return CMD_LAYER_RESULT_CANNOT_HANDLE;
+}
+
 bool treat_as_background_task(vector *tokens) {
   // if the last token is a '&'
   size_t tokens_length = vector_length(tokens);
@@ -77,8 +94,6 @@ bool treat_as_background_task(vector *tokens) {
   }
 }
 
-const size_t MAX_PATH = 256; // Pulled this default outta thin air, feel free to
-                             // change if it sucks or something
 CMD_LAYER_RESULT subprocess_invoke_local_handler(vector *parameters) {
   char resolved_path[MAX_PATH];
   char *unparsed_executable_path =
